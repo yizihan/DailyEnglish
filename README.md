@@ -2,7 +2,7 @@
 
 每天 10–15 分钟，用家庭生活中的英文指令练习听懂与动作响应。首批包含 6 节日常课、1 节周测，26 条指令和 8 个测评任务。
 
-仓库：[yizihan/DailyEnglish](https://github.com/yizihan/DailyEnglish) · [Pages 部署状态](https://github.com/yizihan/DailyEnglish/actions/workflows/deploy.yml)
+[打开学习网站](https://yizihan.github.io/DailyEnglish/) · [GitHub 仓库](https://github.com/yizihan/DailyEnglish) · [Pages 部署状态](https://github.com/yizihan/DailyEnglish/actions/workflows/deploy.yml)
 
 ## 本地启动
 
@@ -46,7 +46,7 @@ npm run test:e2e
 
 ## GitHub Pages 发布
 
-目标仓库为 `yizihan/DailyEnglish`。站点地址以 Deploy Pages 工作流的成功部署结果为准。
+目标仓库为 `yizihan/DailyEnglish`，已启用 GitHub Actions 发布。正式站点为 https://yizihan.github.io/DailyEnglish/ 。后续更新的部署结果以 Deploy Pages 工作流为准。
 
 1. 确认目标 GitHub 账号和课程内容的公开许可，再创建公开仓库。
 2. 提交应用、标准化 Markdown、文档和 lockfile；不要提交个人进度、node_modules、dist、临时文件。PDF 默认忽略。
