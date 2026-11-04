@@ -1,0 +1,10 @@
+node_modules/
+dist/
+public/courses/
+test-results/
+playwright-report/
+*.local
+.env*
+*progress*.json
+tmp/
+Day1-14.pdf
