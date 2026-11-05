@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import type { Task } from "../domain/content";
-import type { Rating } from "../domain/progress";
 import RichText from "./RichText.vue";
-import RatingButtons from "./RatingButtons.vue";
 defineProps<{
   tasks: Task[];
   parent?: boolean;
-  ratings: Record<string, Rating>;
+  activeId?: string;
 }>();
-defineEmits<{ rate: [id: string, value: Rating]; speak: [text: string] }>();
+defineEmits<{ speak: [text: string, id: string] }>();
 </script>
 <template>
   <section class="assessment">
@@ -32,8 +30,8 @@ defineEmits<{ rate: [id: string, value: Rating]; speak: [text: string] }>();
           :value="task.answer"
           lang="en"
           class="english compact"
-        /><button @click="$emit('speak', task.answer.text)">
-          ▷ 朗读参考句
+        /><button @click="$emit('speak', task.answer.text, task.id)">
+          {{ activeId === task.id ? "停止" : "▷ 朗读参考句" }}
         </button>
       </details>
       <template v-else
@@ -41,16 +39,11 @@ defineEmits<{ rate: [id: string, value: Rating]; speak: [text: string] }>();
           :value="task.answer"
           lang="en"
           class="english compact" /><button
-          @click="$emit('speak', task.answer.text)"
+          @click="$emit('speak', task.answer.text, task.id)"
         >
-          ▷ 朗读指令</button
+          {{ activeId === task.id ? "停止" : "▷ 朗读指令" }}</button
         ><RichText :value="task.observation" class="muted" /></template
-      ><RatingButtons
-        :parent="parent"
-        :model-value="ratings[task.id]"
-        :label="task.title.text + '测评结果'"
-        @update:model-value="(value) => $emit('rate', task.id, value)"
-      />
+      >
     </article>
   </section>
 </template>

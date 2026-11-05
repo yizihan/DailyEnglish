@@ -4,16 +4,11 @@ test("learn, persist, assess and safely export/import", async ({ page }) => {
   await page.goto("./");
   await page.getByRole("link", { name: "开始今天的练习" }).click();
   await expect(page.locator(".instruction")).toHaveCount(4);
-  await page
-    .getByRole("button", { name: "独立完成", exact: true })
-    .first()
-    .click();
-  await page.reload();
-  await expect(
-    page.getByRole("button", { name: "独立完成", exact: true }).first(),
-  ).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".instruction-notes").first().getByText("发音提示 · 原稿辅助说明")).toBeVisible();
+  await expect(page.locator(".instruction-notes").first().getByText("替换与延伸表达")).toBeVisible();
+  await expect(page.getByRole("button", { name: "独立完成", exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "完成本课", exact: true }).click();
-  await page.getByRole("button", { name: "仍然完成" }).click();
+  await page.reload();
   await expect(page.locator(".status-stamp")).toContainText("已完成");
   await page.goto("./#/lessons/day-007");
   await expect(page.locator(".assessment")).toHaveCount(2);
@@ -23,10 +18,6 @@ test("learn, persist, assess and safely export/import", async ({ page }) => {
   await expect(parent.locator(".english").first()).not.toBeVisible();
   await parent.getByText("查看参考英文", { exact: true }).first().click();
   await expect(parent.locator(".english").first()).toBeVisible();
-  await parent
-    .getByRole("button", { name: "说出来了", exact: true })
-    .first()
-    .click();
   await page.goto("./#/progress");
   const saved = await page.evaluate((k) => localStorage.getItem(k), key);
   const downloadPromise = page.waitForEvent("download");
@@ -100,10 +91,7 @@ test("corrupt storage is not overwritten by learning", async ({ page }) => {
   await page.addInitScript((key) => localStorage.setItem(key, "{broken"), key);
   await page.goto("./#/lessons/day-001");
   await expect(page.getByRole("alert")).toContainText("原数据未覆盖");
-  await page
-    .getByRole("button", { name: "独立完成", exact: true })
-    .first()
-    .click();
+  await page.getByRole("button", { name: "完成本课", exact: true }).click();
   expect(await page.evaluate((k) => localStorage.getItem(k), key)).toBe(
     "{broken",
   );
@@ -117,25 +105,22 @@ test("storage write failures keep in-memory progress and do not falsely import",
     };
   });
   await page.goto("./#/lessons/day-001");
-  await page
-    .getByRole("button", { name: "独立完成", exact: true })
-    .first()
-    .click();
+  await page.getByRole("button", { name: "完成本课", exact: true }).click();
   await expect(page.getByRole("alert")).toContainText("本次进度未保存");
-  await expect(
-    page.getByRole("button", { name: "独立完成", exact: true }).first(),
-  ).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".status-stamp")).toContainText("已完成");
 });
 test("search, empty results, missing route and load retry", async ({
   page,
 }) => {
   await page.goto("./#/lessons");
+  const courseCount = await page.locator(".lesson-row").count();
+  expect(courseCount).toBeGreaterThan(0);
   await page.getByRole("searchbox").fill("soap");
   await expect(page.locator(".lesson-row")).toHaveCount(1);
   await page.getByRole("searchbox").fill("not-found");
   await expect(page.getByText("暂时没有匹配的课程")).toBeVisible();
   await page.getByRole("button", { name: "清除筛选" }).click();
-  await expect(page.locator(".lesson-row")).toHaveCount(7);
+  await expect(page.locator(".lesson-row")).toHaveCount(courseCount);
   await page.goto("./#/missing");
   await expect(
     page.getByRole("heading", { name: "这一页还没有内容" }),
@@ -212,18 +197,12 @@ test("backup restores in an independent browser context and all-complete has no 
   const context = await browser.newContext();
   const page = await context.newPage();
   try {
-    const lessons = Object.fromEntries(
-      Array.from({ length: 7 }, (_, i) => [
-        `day-${String(i + 1).padStart(3, "0")}`,
-        {
-          learnedOn: "2026-11-04",
-          completedAt: "2026-11-04T12:00:00Z",
-          revision: 1,
-          ratings: {},
-          reviews: {},
-        },
-      ]),
-    );
+    const response = await page.request.get("http://127.0.0.1:4173/DailyEnglish/courses/index.json");
+    const courses: { id: string }[] = await response.json();
+    expect(courses.length).toBeGreaterThan(0);
+    const lessons = Object.fromEntries(courses.map(({ id }) => [id, {
+      learnedOn: "2026-11-04", completedAt: "2026-11-04T12:00:00Z", revision: 1, ratings: {}, reviews: {}
+    }]));
     const backup = {
       format: "dailyenglish-progress",
       exportedAt: new Date().toISOString(),
@@ -239,12 +218,12 @@ test("backup restores in an independent browser context and all-complete has no 
       });
     await page.getByRole("button", { name: "确认替换", exact: true }).click();
     await page.reload();
-    await expect(page.locator(".history")).toHaveCount(7);
+    await expect(page.locator(".history")).toHaveCount(courses.length);
     await page.goto("http://127.0.0.1:4173/DailyEnglish/#/");
     await expect(
       page.getByRole("heading", { name: "这一批课程，已经走完。" }),
     ).toBeVisible();
-    await expect(page.locator('a[href*="day-008"]')).toHaveCount(0);
+    await expect(page.locator(".today-sheet")).toContainText("这一批课程，已经走完");
   } finally {
     await context.close();
   }
@@ -283,7 +262,10 @@ test("local speech removes display markers and stops on navigation", async ({
     .getByRole("button", { name: /朗读：/ })
     .first()
     .click();
-  await expect(page.getByRole("button", { name: "停止朗读" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /停止朗读：/ })).toHaveText("停止");
+  await page.getByRole("button", { name: /停止朗读：/ }).click();
+  await expect(page.getByRole("button", { name: /朗读：/ }).first()).toBeVisible();
+  await page.getByRole("button", { name: /朗读：/ }).first().click();
   const before = await page.evaluate(
     () =>
       (
@@ -292,7 +274,7 @@ test("local speech removes display markers and stops on navigation", async ({
         }
       ).speechCalls,
   );
-  expect(before.texts).toEqual(["Time to get up!"]);
+  expect(before.texts).toEqual(["Time to get up!", "Time to get up!"]);
   await page.getByRole("link", { name: "02 全部课程" }).click();
   expect(
     await page.evaluate(

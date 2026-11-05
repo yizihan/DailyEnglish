@@ -2,6 +2,7 @@ import { ref, onMounted, onUnmounted } from "vue";
 export function useSpeech() {
   const voice = ref<SpeechSynthesisVoice>();
   const playing = ref(false);
+  const activeId = ref<string>();
   const message = ref("");
   const synth =
     typeof window !== "undefined" && "speechSynthesis" in window
@@ -20,8 +21,10 @@ export function useSpeech() {
     generation++;
     synth?.cancel();
     playing.value = false;
+    activeId.value = undefined;
   }
-  function speak(text: string) {
+  function speak(text: string, id: string) {
+    if (playing.value && activeId.value === id) { stop(); return; }
     stop();
     message.value = "";
     choose();
@@ -35,14 +38,16 @@ export function useSpeech() {
     utterance.lang = voice.value.lang;
     utterance.rate = 0.85;
     utterance.onend = () => {
-      if (token === generation) playing.value = false;
+      if (token === generation) { playing.value = false; activeId.value = undefined; }
     };
     utterance.onerror = () => {
       if (token === generation) {
         playing.value = false;
+        activeId.value = undefined;
         message.value = "本地朗读未能播放，请由家长示范。";
       }
     };
+    activeId.value = id;
     playing.value = true;
     synth.speak(utterance);
   }
@@ -54,5 +59,5 @@ export function useSpeech() {
     stop();
     synth?.removeEventListener("voiceschanged", choose);
   });
-  return { voice, playing, message, speak, stop };
+  return { voice, playing, activeId, message, speak, stop };
 }

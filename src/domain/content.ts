@@ -27,7 +27,6 @@ export interface LessonMeta {
   estimatedMinutes: number;
   revision: number;
   source: string;
-  reviewStatus: "curated" | "reviewed";
   search: string;
   instructionCount: number;
   taskCount: number;

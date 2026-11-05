@@ -4,18 +4,18 @@
 
 新增课程最简单的方法：复制相同类型的已整理文件，修改元数据及全部条目 ID，再替换正文。
 
-普通课参考 [day-001](lessons/day-001.md)，周测参考 [day-007](lessons/day-007.md)。一个文件一课，UTF-8 编码。不要使用 PDF，也不要转义 Markdown 标记。
+普通课参考 [day-001](lessons/day_001.md)，周测参考 [day-007](lessons/day_007.md)。一个文件一课，UTF-8 编码。不要使用 PDF，也不要转义 Markdown 标记。
 
 ## 固定结构
 
-文件首部 YAML 字段：schemaVersion=1、courseId=parent-child-english、id、order、title、kind、theme、estimatedMinutes、revision、reviewStatus、source。所有字段必须存在，无未知字段。
+文件首部 YAML 字段：schemaVersion=1、courseId=parent-child-english、id、order、title、kind、theme、estimatedMinutes、revision。以上字段必须存在。旧文件中的 reviewStatus 与 source 可保留，也可省略；reviewStatus 不参与构建判断。
 
-- id 与文件名一致，例如 day-008；order 唯一正整数。
+- id 使用连字符，例如 day-008；对应文件名使用下划线，例如 day_008.md；order 唯一正整数。
 - kind 为 daily 或 assessment。
 - theme 为 morning/breakfast/homecoming/mealtime/chores/outdoors/bedtime。
 - estimatedMinutes 为 1–60 正整数；revision 从 1 开始，修改已发布课程递增。
-- reviewStatus 为 draft/curated/reviewed：draft 是草稿，不能构建；curated 表示人工整理，语言未全面审核；reviewed 仅由完成语言审核的维护者设置。不要让模型自行声称 reviewed。
-- source 写真实来源，不编造审核者或音标依据。
+- 放入 lessons 的课程均可参与本地预览和构建，审核由内容维护者负责。
+- 如需填写 source，请如实说明来源，不编造审核者或音标依据。
 
 正文二级标题：学习目标、热身与复习、今日指令。周测增加孩子动作测评、家长表达自测。
 
@@ -30,8 +30,8 @@
 ## 更新步骤
 
 1. 新建或修改 lessons 内 Markdown，保留已有 ID。
-2. `npm run content:check` 检查结构，draft 可检查但不可发布。
-3. 核对中英文一致性、动作提示、发音说明；整理后设 curated，专业审核后才设 reviewed。
+2. `npm run content:check` 检查内容结构。
+3. 核对中英文一致性、动作提示和发音说明；本地构建可用于进一步验证课程内容。
 4. `npm run dev` 查看页面。运行中修改课程会重新生成并刷新。
 5. `npm run typecheck`、`npm test`、`npm run build`、`npm run test:e2e` 全部通过后提交。
 

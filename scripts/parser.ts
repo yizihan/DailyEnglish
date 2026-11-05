@@ -24,8 +24,8 @@ const metaSchema = z
     ]),
     estimatedMinutes: z.number().int().min(1).max(60),
     revision: z.number().int().positive(),
-    reviewStatus: z.enum(["draft", "curated", "reviewed"]),
-    source: z.string().min(1),
+    reviewStatus: z.unknown().optional(),
+    source: z.string().min(1).optional(),
   })
   .strict();
 const escape = (s: string) =>
@@ -83,7 +83,6 @@ const label = (node: RootContent) =>
 export function parseLesson(
   source: string,
   filename: string,
-  allowDraft = false,
 ): Lesson {
   try {
     const lines = source.replace(/^\uFEFF/, "").split(/\r?\n/);
@@ -95,10 +94,8 @@ export function parseLesson(
     });
     if (yaml.errors.length) throw new Error(yaml.errors[0].message);
     const meta = metaSchema.parse(yaml.toJS());
-    if (meta.reviewStatus === "draft" && !allowDraft)
-      throw new Error("草稿不能发布");
-    if (filename !== `${meta.id}.md`)
-      throw new Error("文件名必须与课程 ID 一致");
+    if (filename !== `${meta.id.replace("-", "_")}.md`)
+      throw new Error("文件名必须使用与课程 ID 对应的下划线格式");
     const tree = unified()
       .use(remarkParse)
       .parse(lines.slice(end + 1).join("\n")) as Root;
@@ -221,9 +218,10 @@ export function parseLesson(
     if (new Set(allIds).size !== allIds.length) throw new Error("重复条目 ID");
     const goal = rich(required("学习目标")),
       warmup = rich(required("热身与复习"));
+    const { reviewStatus: _reviewStatus, ...lessonMeta } = meta;
     return {
-      ...meta,
-      reviewStatus: meta.reviewStatus === "reviewed" ? "reviewed" : "curated",
+      ...lessonMeta,
+      source: lessonMeta.source ?? "课程内容",
       goal,
       warmup,
       items,

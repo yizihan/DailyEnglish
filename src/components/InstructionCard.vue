@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import type { Item } from "../domain/content";
-import type { Rating } from "../domain/progress";
 import RichText from "./RichText.vue";
-import RatingButtons from "./RatingButtons.vue";
-defineProps<{ item: Item; index: number; rating?: Rating }>();
-defineEmits<{ rate: [id: string, value: Rating]; speak: [text: string] }>();
+defineProps<{ item: Item; index: number; activeId?: string }>();
+defineEmits<{ speak: [text: string, id: string] }>();
 </script>
 <template>
   <article class="instruction" :aria-label="item.title.text">
@@ -14,10 +12,10 @@ defineEmits<{ rate: [id: string, value: Rating]; speak: [text: string] }>();
         {{ item.title.text }}</span
       ><button
         class="play"
-        @click="$emit('speak', item.en.text)"
-        :aria-label="'朗读：' + item.en.text"
+        @click="$emit('speak', item.en.text, item.id)"
+        :aria-label="(activeId === item.id ? '停止朗读：' : '朗读：') + item.en.text"
       >
-        ▷ 朗读
+        {{ activeId === item.id ? "停止" : "▷ 朗读" }}
       </button>
     </div>
     <RichText :value="item.en" lang="en" class="english" /><RichText
@@ -28,17 +26,11 @@ defineEmits<{ rate: [id: string, value: Rating]; speak: [text: string] }>();
       <span class="small-label">一起做动作</span
       ><RichText :value="item.action" />
     </div>
-    <details>
-      <summary>发音提示与延伸表达</summary>
+    <div class="instruction-notes">
       <span class="small-label">发音提示 · 原稿辅助说明</span
       ><RichText :value="item.pronunciation" /><span class="small-label"
         >替换与延伸表达</span
       ><RichText :value="item.alternatives" />
-    </details>
-    <RatingButtons
-      :model-value="rating"
-      :label="item.title.text + '练习结果'"
-      @update:model-value="(value) => $emit('rate', item.id, value)"
-    />
+    </div>
   </article>
 </template>

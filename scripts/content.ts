@@ -13,7 +13,6 @@ export async function compileContent(check = false) {
       parseLesson(
         await readFile(resolve(root, "content/lessons", f), "utf8"),
         f,
-        check,
       ),
     ),
   );

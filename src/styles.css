@@ -562,10 +562,14 @@ footer {
   margin: 8px 0;
   letter-spacing: 1px;
 }
-.instruction details {
+.instruction-notes {
   font-size: 14px;
   border-top: 1px solid var(--line);
-  padding-bottom: 8px;
+  padding: 14px 0 8px;
+  line-height: 1.8;
+}
+.instruction-notes .small-label:not(:first-child) {
+  margin-top: 18px;
 }
 .ratings {
   display: flex;

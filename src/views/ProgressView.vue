@@ -7,7 +7,6 @@ import {
   importProgress,
   freshProgress,
   localDate,
-  labels,
   type Progress,
 } from "../domain/progress";
 const { state, replace, raw, blocked } = useProgress();
@@ -17,12 +16,6 @@ const pending = ref<Progress>(),
   confirmReset = ref(false);
 const done = computed(() =>
   courses.value.filter((c) => state.value.lessons[c.id]?.learnedOn),
-);
-const totalRatings = computed(() =>
-  Object.values(state.value.lessons).reduce(
-    (n, e) => n + Object.keys(e.ratings).length,
-    0,
-  ),
 );
 function backup() {
   download(
@@ -77,10 +70,6 @@ function reset() {
         >{{ done.length }}<small> / {{ courses.length }}</small></strong
       ><span>已完成课程</span>
     </div>
-    <div>
-      <strong>{{ totalRatings }}</strong
-      ><span>已记录练习</span>
-    </div>
   </div>
   <section class="backup-section">
     <h2>备份与恢复</h2>
@@ -129,22 +118,7 @@ function reset() {
         Day {{ c.order }} · {{ c.title }}
         <span>{{ state.lessons[c.id]?.learnedOn }}</span>
       </summary>
-      <p>
-        已记录
-        {{ Object.keys(state.lessons[c.id]?.ratings ?? {}).length }} 项，已完成
-        {{ Object.keys(state.lessons[c.id]?.reviews ?? {}).length }}
-        个复习节点。
-      </p>
-      <ul>
-        <li v-for="(label, rating) in labels" :key="rating">
-          {{ label }}：{{
-            Object.values(state.lessons[c.id]?.ratings ?? {}).filter(
-              (value) => value === rating,
-            ).length
-          }}
-          项
-        </li>
-      </ul>
+      <p>已完成 {{ Object.keys(state.lessons[c.id]?.reviews ?? {}).length }} 个复习节点。</p>
       <RouterLink :to="'/lessons/' + c.id" class="text-link"
         >回到课程 →</RouterLink
       >
