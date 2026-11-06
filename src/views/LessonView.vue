@@ -11,6 +11,7 @@ import {
   dueOffsets,
 } from "../domain/progress";
 import type { Lesson } from "../domain/content";
+import { lessonListening } from "../domain/listening";
 import InstructionCard from "../components/InstructionCard.vue";
 import AssessmentPanel from "../components/AssessmentPanel.vue";
 import RichText from "../components/RichText.vue";
@@ -83,6 +84,23 @@ function review() {
           v-if="progress?.learnedOn"
           >已完成 · {{ progress.learnedOn }}</span
         >
+        <div class="actions lesson-listening">
+          <button
+            type="button"
+            class="primary"
+            @click="speech.toggleLesson(lessonListening(lesson))"
+          >
+            <span aria-hidden="true">{{ speech.lessonMode.value === "idle" ? "▷" : "■" }}</span>
+            {{ speech.lessonMode.value === "idle" ? "听本课重点" : "停止播放" }}
+          </button>
+          <button v-if="speech.lessonMode.value === 'parent-meaning'" type="button" @click="speech.continueInEnglish">
+            听本条英文
+          </button>
+          <span v-if="speech.lessonMessage.value" class="muted" role="status">
+            {{ speech.lessonMessage.value }}
+          </span>
+          <span v-else class="muted">先听中文意思，再读英文指令</span>
+        </div>
       </div>
       <div
         class="notice"

@@ -6,6 +6,10 @@ const source = await readFile(
   new URL("../content/lessons/day_001.md", import.meta.url),
   "utf8",
 );
+const assessmentSource = await readFile(
+  new URL("../content/lessons/day_007.md", import.meta.url),
+  "utf8",
+);
 describe("course publishing", () => {
   it("preserves 7 lessons, 26 instructions, and 4+4 assessment tasks", async () => {
     const lessons = await compileContent(true);
@@ -18,6 +22,16 @@ describe("course publishing", () => {
     expect(lessons[0].items[1].pronunciation.text).toContain("/ʃɜːrt/");
     expect(lessons[5].warmup.text).toContain("Grab your bag");
     expect(lessons[6].parentTasks[2].prompt.text).toContain("固体食物");
+  });
+  it("reads the child's translation separately from the parent-facing scenario, including older tasks without it", () => {
+    const block = /#### 中文\r?\n\r?\n穿上外套，拉好拉链！然后脱掉鞋子。\r?\n/;
+    const current = parseLesson(assessmentSource, "day_007.md").childTasks[0];
+    expect(current.zh?.text).toBe("穿上外套，拉好拉链！然后脱掉鞋子。");
+    expect(current.prompt.text).toBe("指着外套和鞋子说");
+    const legacy = parseLesson(assessmentSource.replace(block, ""), "day_007.md");
+    expect(legacy.childTasks[0].zh).toBeUndefined();
+    expect(() => parseLesson(assessmentSource.replace(block, "#### 中文\n\n"), "day_007.md"))
+      .toThrow(/day_007.md: day-007-c01 空字段 中文/);
   });
   it("accepts a new lesson without app changes", () => {
     const next = source

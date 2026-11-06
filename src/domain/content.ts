@@ -16,6 +16,7 @@ export interface Task {
   title: Rich;
   prompt: Rich;
   answer: Rich;
+  zh?: Rich;
   observation: Rich;
 }
 export interface LessonMeta {

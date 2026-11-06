@@ -472,6 +472,12 @@ footer {
 .lesson-heading h1 {
   font-size: 30px;
 }
+.lesson-listening {
+  margin-top: 16px;
+}
+.lesson-listening .muted {
+  font-size: 14px;
+}
 .status-stamp {
   display: inline-block;
   font-size: 12px;

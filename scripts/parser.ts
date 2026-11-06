@@ -125,7 +125,8 @@ export function parseLesson(
       if (!nodes?.length) throw new Error(`缺少 ${name}`);
       return nodes;
     };
-    const parseItems = (name: string, fields: string[]) => {
+    const parseItems = (name: string, fields: string[], optional: string[] = []) => {
+      const allowedFields = [...fields, ...optional];
       const prefix =
         name === "今日指令" ? "i" : name === "孩子动作测评" ? "c" : "p";
       const result: { id: string; fields: Record<string, Rich> }[] = [];
@@ -134,8 +135,9 @@ export function parseLesson(
       let buffer: RootContent[] = [];
       const flush = () => {
         if (current && fieldName) {
-          if (!buffer.length) throw new Error(`空字段 ${fieldName}`);
-          current.fields[fieldName] = rich(buffer);
+          const value = rich(buffer);
+          if (!value.text.trim()) throw new Error(`${current.id} 空字段 ${fieldName}`);
+          current.fields[fieldName] = value;
           buffer = [];
         }
       };
@@ -152,7 +154,7 @@ export function parseLesson(
           fieldName = label(node);
           if (
             !current ||
-            !fields.includes(fieldName) ||
+            !allowedFields.includes(fieldName) ||
             current.fields[fieldName]
           )
             throw new Error(`未知或重复字段 ${fieldName}`);
@@ -193,11 +195,13 @@ export function parseLesson(
             child
               ? ["标题", "情境", "英文", "观察要点"]
               : ["标题", "中文情境", "参考英文"],
+            child ? ["中文"] : [],
           ).map(({ id, fields: f }) => ({
             id,
             title: f["标题"],
             prompt: f[child ? "情境" : "中文情境"],
             answer: f[child ? "英文" : "参考英文"],
+            ...(f["中文"] && { zh: f["中文"] }),
             observation: f["观察要点"] ?? empty,
           }));
     const childTasks = tasks(true),
